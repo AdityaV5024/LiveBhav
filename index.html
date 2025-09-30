@@ -1,214 +1,392 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Live Bhav Dashboard</title>
-<style>
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #121212;
-        color: #f5d76e;
-        margin: 0;
-        padding: 20px;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Bhav Dashboard</title>
+    <style>
+        :root {
+            --transition-speed: 0.3s;
+        }
 
-    h1 {
-        text-align: center;
-        color: #f5d76e;
-        margin-bottom: 20px;
-        letter-spacing: 1px;
-    }
+        /* Dark Mode colors */
+        body.dark {
+            --bg-color: #1b1b2f;
+            --tile-bg: #2b2b44;
+            --text-color: #e0d7f5;
+            --heading-color: #cfa6ff;
+            --button-bg: #cfa6ff;
+            --button-text: #1b1b2f;
+        }
 
-    #diffBox {
-        text-align: center;
-        margin-bottom: 25px;
-    }
+        /* Light Mode colors */
+        body.light {
+            --bg-color: #f5f5f5;
+            --tile-bg: #ffffff;
+            --text-color: #4b0082;
+            --heading-color: #7d5fff;
+            --button-bg: #7d5fff;
+            --button-text: #ffffff;
+        }
 
-    input[type="number"] {
-        width: 100px;
-        padding: 8px;
-        font-size: 1rem;
-        border-radius: 8px;
-        border: none;
-        outline: none;
-        margin-right: 10px;
-    }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
 
-    button {
-        padding: 8px 16px;
-        font-size: 1rem;
-        border-radius: 8px;
-        border: none;
-        background-color: #f5d76e;
-        color: #121212;
-        cursor: pointer;
-        transition: 0.3s;
-    }
+        /* Heading */
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            color: var(--heading-color);
+            letter-spacing: 1px;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            transition: color var(--transition-speed);
+        }
 
-    button:hover {
-        background-color: #e0b74e;
-    }
+        /* Difference input */
+        #diffBox {
+            text-align: center;
+            margin-bottom: 30px;
+        }
 
-    #tiles {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-        justify-content: center;
-    }
+        #diffBox input[type="number"] {
+            width: 120px;
+            padding: 8px;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+        }
 
-    .tile {
-        background-color: #1e1e1e;
-        border-radius: 12px;
-        padding: 20px;
-        width: 220px;
-        text-align: center;
-        box-shadow: 0 6px 15px rgba(0,0,0,0.4);
-        transition: transform 0.3s, box-shadow 0.3s;
-    }
+        #diffBox button,
+        #modeToggle {
+            padding: 8px 16px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: 0.3s;
+        }
 
-    .tile:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    }
+        #diffBox button {
+            background-color: var(--button-bg);
+            color: var(--button-text);
+        }
 
-    .tile h3 {
-        margin: 0 0 15px 0;
-        font-size: 1rem;
-        color: #f5d76e;
-    }
+        #diffBox button:hover,
+        #modeToggle:hover {
+            opacity: 0.8;
+        }
 
-    .rate {
-        font-size: 1.1rem;
-        margin: 8px 0;
-        transition: color 0.5s;
-    }
+        /* Tiles container */
+        #tilesContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            justify-items: center;
+        }
 
-    .green-flash {
-        color: #28a745 !important;
-    }
+        /* Individual tile */
+        body.dark {
+            background-color: #1a1a2e;
+            /* Deep dark purple */
+            color: #e0d4ff;
+            /* Pastel purple text */
+        }
 
-    .red-flash {
-        color: #dc3545 !important;
-    }
+        body.light {
+            background-color: #f2f2f5;
+            /* Soft off-white */
+            color: #3c3c4c;
+            /* Soft dark gray text */
+        }
 
-    @media (max-width: 600px) {
+        /* Header */
+        h1 {
+            text-align: center;
+            font-family: 'Arial Black', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            transition: color 0.4s;
+        }
+
+        body.dark h1 {
+            color: #c5b3ff;
+        }
+
+        /* pastel purple heading in dark mode */
+        body.light h1 {
+            color: #7d5fff;
+        }
+
+        /* soft purple heading in light mode */
+
+        /* Tiles */
         .tile {
-            width: 100%;
+            padding: 20px;
+            margin: 15px;
+            border-radius: 15px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.4s, color 0.4s;
+            background-color: #2b1a4a;
+            /* Dark tile */
         }
-    }
-</style>
+
+        body.light .tile {
+            background-color: #ffffff;
+            /* Light tile */
+            color: #3c3c4c;
+            /* Text in tiles */
+        }
+
+
+        .tile:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+        }
+
+        .tile h2 {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            color: var(--heading-color);
+        }
+
+        /* Rate animation */
+        .rate {
+            font-size: 1.5rem;
+            margin: 8px 0;
+            transition: color 0.5s, transform 0.3s;
+        }
+
+        .rate.up {
+            color: #7CFC00;
+        }
+
+        /* green for increase */
+        .rate.down {
+            color: #FF6347;
+        }
+
+        /* red for decrease */
+    </style>
 </head>
-<body>
 
-<h1>Live Bhav Dashboard</h1>
+<body class="dark">
 
-<div id="diffBox">
-    <label>Difference:</label>
-    <input type="number" id="diffInput" value="0" step="0.01">
-    <button onclick="saveDifference()">Save</button>
-</div>
+    <h1>Live Bhav Dashboard</h1>
 
-<div id="tiles"></div>
+    <div id="diffBox">
+        <label>Difference: </label>
+        <input type="number" id="diffInput" value="0" step="0.01">
+        <button onclick="saveDifference()">Save</button>
 
-<script>
-const scrips = [
-    { name: "GOLD MAX NEW", code: "6352" },
-    { name: "SILVER MAX", code: "6353" },
-    { name: "GOLD 99.50 RTGS BHAV 50-100 GRAM", code: "6821" },
-    { name: "GOLD 99.50 CASH BHAV", code: "6330" },
-    { name: "SILVER REFINERY 99 TOUNCH CASH BHAV", code: "6822" },
-    { name: "SILVER SIL CUT RTGS BHAV 2-5 KG", code: "6315" },
-    { name: "SILVER SIL CUT CASH BHAV", code: "6325" },
-    { name: "22 K GOLD PRICE WITHOUT MAKING & GST", code: "6316" },
-    { name: "20 K GOLD PRICE WITHOUT MAKING & GST", code: "6326" },
-    { name: "18 K GOLD PRICE WITHOUT MAKING & GST", code: "6313" },
-    { name: "14 K PRICE WITHOUT MAKING & GST", code: "6328" },
-    { name: "9 K PRICE WITHOUT MAKING & GST", code: "6311" }
-];
+        <!-- Dark/Light mode toggle -->
+        <label class="switch">
+            <input type="checkbox" id="themeToggle" onchange="toggleMode()">
+            <span class="slider">
+                <img src="moon.png" alt="Dark" class="icon moon">
+                <img src="sun.png" alt="Light" class="icon sun">
+            </span>
+        </label>
+    </div>
 
-// Load difference
-let difference = parseFloat(localStorage.getItem('bhavDiff') || 0);
-document.getElementById('diffInput').value = difference;
+    <style>
+        /* Toggle switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+            margin-left: 15px;
+        }
 
-function saveDifference() {
-    difference = parseFloat(document.getElementById('diffInput').value) || 0;
-    localStorage.setItem('bhavDiff', difference);
-    updateTiles();
-}
+        .switch input {
+            display: none;
+        }
 
-// Initialize tiles
-const tilesDiv = document.getElementById("tiles");
-scrips.forEach(s => {
-    const tile = document.createElement("div");
-    tile.className = "tile";
-    tile.innerHTML = `
-        <h3>${s.name}</h3>
-        <div class="rate">MCX BUY: <span class="buy">-</span></div>
-        <div class="rate">MCX SELL: <span class="sell">-</span></div>
-        <div class="rate">BUY + DIFF: <span class="buyDiff">-</span></div>
-        <div class="rate">SELL + DIFF: <span class="sellDiff">-</span></div>
-    `;
-    tilesDiv.appendChild(tile);
-    s.tile = tile;
-    s.prevBuy = null;
-    s.prevSell = null;
-});
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            background-color: #ccc;
+            border-radius: 30px;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            transition: 0.4s;
+        }
 
-async function fetchRates() {
-    for (let s of scrips) {
-        try {
-            const url = `https://bcast.pankajchain.com:7768/VOTSBroadcastStreaming/Services/xml/GetLiveRateOfScrip/${s.code}`;
-            const res = await fetch(url);
-            const text = await res.text();
-            const parts = text.split("\t");
-            if(parts.length >= 5){
-                s.buy = parseFloat(parts[3]);
-                s.sell = parseFloat(parts[4]);
+        .slider .icon {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 5px;
+            transition: 0.4s;
+        }
+
+        .slider .moon {
+            left: 5px;
+        }
+
+        .slider .sun {
+            right: 5px;
+            opacity: 0;
+        }
+
+        .switch input:checked+.slider {
+            background-color: #7d5fff;
+        }
+
+        .switch input:checked+.slider .moon {
+            opacity: 0;
+        }
+
+        .switch input:checked+.slider .sun {
+            opacity: 1;
+        }
+    </style>
+
+    <script>
+        // Load saved theme
+        document.body.classList.replace(document.body.className, savedTheme);
+        document.getElementById('themeToggle').checked = savedTheme === 'light';
+
+        // Toggle function
+        function toggleMode() {
+            const body = document.body;
+            const toggle = document.getElementById('themeToggle');
+            if (toggle.checked) {
+                body.classList.replace('dark', 'light');
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.replace('light', 'dark');
+                localStorage.setItem('theme', 'dark');
             }
-        } catch(e){
-            console.error("Error fetching", s.code, e);
         }
-    }
-    updateTiles();
-}
+    </script>
 
-function flash(element, className) {
-    element.classList.add(className);
-    setTimeout(() => element.classList.remove(className), 1000);
-}
 
-function updateTiles() {
-    scrips.forEach(s => {
-        const buyEl = s.tile.querySelector(".buy");
-        const sellEl = s.tile.querySelector(".sell");
-        const buyDiffEl = s.tile.querySelector(".buyDiff");
-        const sellDiffEl = s.tile.querySelector(".sellDiff");
+    <div id="tilesContainer"></div>
 
-        // Flash text if value changed
-        if(s.prevBuy != null && s.buy != null){
-            if(s.buy > s.prevBuy) flash(buyEl, "green-flash");
-            if(s.buy < s.prevBuy) flash(buyEl, "red-flash");
+    <script>
+        // Scrips data
+        const scrips = [
+            { name: "GOLD MAX NEW", code: "6352" },
+            { name: "SILVER MAX", code: "6353" },
+            { name: "GOLD 99.50 RTGS BHAV 50-100 GRAM", code: "6821" },
+            { name: "GOLD 99.50 CASH BHAV", code: "6330" },
+            { name: "SILVER REFINERY 99 TOUNCH CASH BHAV", code: "6822" },
+            { name: "SILVER SIL CUT RTGS BHAV 2-5 KG", code: "6315" },
+            { name: "SILVER SIL CUT CASH BHAV", code: "6325" },
+            { name: "22 K GOLD PRICE WITHOUT MAKING & GST", code: "6316" },
+            { name: "20 K GOLD PRICE WITHOUT MAKING & GST", code: "6326" },
+            { name: "18 K PRICE WITHOUT MAKING & GST", code: "6313" },
+            { name: "14 K PRICE WITHOUT MAKING & GST", code: "6328" },
+            { name: "9 K PRICE WITHOUT MAKING & GST", code: "6311" }
+        ];
+
+        // Load difference
+        let difference = parseFloat(localStorage.getItem('bhavDiff') || 0);
+        document.getElementById('diffInput').value = difference;
+
+        // Save difference
+        function saveDifference() {
+            difference = parseFloat(document.getElementById('diffInput').value) || 0;
+            localStorage.setItem('bhavDiff', difference);
+            updateTiles();
         }
-        if(s.prevSell != null && s.sell != null){
-            if(s.sell > s.prevSell) flash(sellEl, "green-flash");
-            if(s.sell < s.prevSell) flash(sellEl, "red-flash");
+
+        // Create tiles
+        const container = document.getElementById('tilesContainer');
+        scrips.forEach(s => {
+            const tile = document.createElement('div');
+            tile.className = 'tile';
+            tile.innerHTML = `
+        <h2>${s.name}</h2>
+        <div>Buy: <span class="rate buy">-</span></div>
+        <div>Sell: <span class="rate sell">-</span></div>
+        <div>Buy + Diff: <span class="rate buyDiff">-</span></div>
+        <div>Sell + Diff: <span class="rate sellDiff">-</span></div>
+    `;
+            container.appendChild(tile);
+            s.tile = tile;
+        });
+
+        // Flash effect
+        function flash(el, type) {
+            el.classList.remove('up', 'down');
+            void el.offsetWidth;
+            el.classList.add(type);
+            setTimeout(() => el.classList.remove(type), 1000);
         }
 
-        buyEl.innerText = s.buy != null ? s.buy.toFixed(2) : "-";
-        sellEl.innerText = s.sell != null ? s.sell.toFixed(2) : "-";
-        buyDiffEl.innerText = s.buy != null ? (s.buy + difference).toFixed(2) : "-";
-        sellDiffEl.innerText = s.sell != null ? (s.sell + difference).toFixed(2) : "-";
+        // Animate value change
+        function animateValue(el, newVal) {
+            const oldVal = parseFloat(el.innerText) || 0;
+            if (newVal > oldVal) flash(el, 'up');
+            else if (newVal < oldVal) flash(el, 'down');
+            el.innerText = newVal.toFixed(2);
+        }
 
-        s.prevBuy = s.buy;
-        s.prevSell = s.sell;
-    });
-}
+        // Update all tiles
+        function updateTiles() {
+            scrips.forEach(s => {
+                if (s.buy != null && s.sell != null) {
+                    animateValue(s.tile.querySelector('.buy'), s.buy);
+                    animateValue(s.tile.querySelector('.sell'), s.sell);
+                    animateValue(s.tile.querySelector('.buyDiff'), s.buy + difference);
+                    animateValue(s.tile.querySelector('.sellDiff'), s.sell + difference);
+                }
+            });
+        }
 
-// Auto refresh every second
-fetchRates();
-setInterval(fetchRates, 1000);
-</script>
+        // Fetch live rates
+        async function fetchRates() {
+            for (let s of scrips) {
+                try {
+                    const url = `https://bcast.pankajchain.com:7768/VOTSBroadcastStreaming/Services/xml/GetLiveRateOfScrip/${s.code}`;
+                    const res = await fetch(url);
+                    const text = await res.text();
+                    const parts = text.split("\t");
+                    if (parts.length >= 5) {
+                        s.buy = parseFloat(parts[3]);
+                        s.sell = parseFloat(parts[4]);
+                    }
+                } catch (e) {
+                    console.error("Error fetching", s.code, e);
+                }
+            }
+            updateTiles();
+        }
+
+        // Mode toggle
+        function toggleMode() {
+            if (document.body.classList.contains('dark')) {
+                document.body.classList.replace('dark', 'light');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.body.classList.replace('light', 'dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Load theme
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.body.classList.replace(document.body.className, savedTheme);
+
+        // Initial fetch + auto-refresh
+        fetchRates();
+        setInterval(fetchRates, 1000);
+    </script>
 
 </body>
+
 </html>
