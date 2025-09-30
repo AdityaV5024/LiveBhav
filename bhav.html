@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Bhav Dashboard</title>
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #121212;
+        color: #f5d76e;
+        margin: 0;
+        padding: 20px;
+    }
+
+    h1 {
+        text-align: center;
+        color: #f5d76e;
+        margin-bottom: 20px;
+        letter-spacing: 1px;
+    }
+
+    #diffBox {
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    input[type="number"] {
+        width: 100px;
+        padding: 8px;
+        font-size: 1rem;
+        border-radius: 8px;
+        border: none;
+        outline: none;
+        margin-right: 10px;
+    }
+
+    button {
+        padding: 8px 16px;
+        font-size: 1rem;
+        border-radius: 8px;
+        border: none;
+        background-color: #f5d76e;
+        color: #121212;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    button:hover {
+        background-color: #e0b74e;
+    }
+
+    #tiles {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+    }
+
+    .tile {
+        background-color: #1e1e1e;
+        border-radius: 12px;
+        padding: 20px;
+        width: 220px;
+        text-align: center;
+        box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .tile:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+
+    .tile h3 {
+        margin: 0 0 15px 0;
+        font-size: 1rem;
+        color: #f5d76e;
+    }
+
+    .rate {
+        font-size: 1.1rem;
+        margin: 8px 0;
+        transition: color 0.5s;
+    }
+
+    .green-flash {
+        color: #28a745 !important;
+    }
+
+    .red-flash {
+        color: #dc3545 !important;
+    }
+
+    @media (max-width: 600px) {
+        .tile {
+            width: 100%;
+        }
+    }
+</style>
+</head>
+<body>
+
+<h1>Live Bhav Dashboard</h1>
+
+<div id="diffBox">
+    <label>Difference:</label>
+    <input type="number" id="diffInput" value="0" step="0.01">
+    <button onclick="saveDifference()">Save</button>
+</div>
+
+<div id="tiles"></div>
+
+<script>
+const scrips = [
+    { name: "GOLD MAX NEW", code: "6352" },
+    { name: "SILVER MAX", code: "6353" },
+    { name: "GOLD 99.50 RTGS BHAV 50-100 GRAM", code: "6821" },
+    { name: "GOLD 99.50 CASH BHAV", code: "6330" },
+    { name: "SILVER REFINERY 99 TOUNCH CASH BHAV", code: "6822" },
+    { name: "SILVER SIL CUT RTGS BHAV 2-5 KG", code: "6315" },
+    { name: "SILVER SIL CUT CASH BHAV", code: "6325" },
+    { name: "22 K GOLD PRICE WITHOUT MAKING & GST", code: "6316" },
+    { name: "20 K GOLD PRICE WITHOUT MAKING & GST", code: "6326" },
+    { name: "18 K GOLD PRICE WITHOUT MAKING & GST", code: "6313" },
+    { name: "14 K PRICE WITHOUT MAKING & GST", code: "6328" },
+    { name: "9 K PRICE WITHOUT MAKING & GST", code: "6311" }
+];
+
+// Load difference
+let difference = parseFloat(localStorage.getItem('bhavDiff') || 0);
+document.getElementById('diffInput').value = difference;
+
+function saveDifference() {
+    difference = parseFloat(document.getElementById('diffInput').value) || 0;
+    localStorage.setItem('bhavDiff', difference);
+    updateTiles();
+}
+
+// Initialize tiles
+const tilesDiv = document.getElementById("tiles");
+scrips.forEach(s => {
+    const tile = document.createElement("div");
+    tile.className = "tile";
+    tile.innerHTML = `
+        <h3>${s.name}</h3>
+        <div class="rate">MCX BUY: <span class="buy">-</span></div>
+        <div class="rate">MCX SELL: <span class="sell">-</span></div>
+        <div class="rate">BUY + DIFF: <span class="buyDiff">-</span></div>
+        <div class="rate">SELL + DIFF: <span class="sellDiff">-</span></div>
+    `;
+    tilesDiv.appendChild(tile);
+    s.tile = tile;
+    s.prevBuy = null;
+    s.prevSell = null;
+});
+
+async function fetchRates() {
+    for (let s of scrips) {
+        try {
+            const url = `https://bcast.pankajchain.com:7768/VOTSBroadcastStreaming/Services/xml/GetLiveRateOfScrip/${s.code}`;
+            const res = await fetch(url);
+            const text = await res.text();
+            const parts = text.split("\t");
+            if(parts.length >= 5){
+                s.buy = parseFloat(parts[3]);
+                s.sell = parseFloat(parts[4]);
+            }
+        } catch(e){
+            console.error("Error fetching", s.code, e);
+        }
+    }
+    updateTiles();
+}
+
+function flash(element, className) {
+    element.classList.add(className);
+    setTimeout(() => element.classList.remove(className), 1000);
+}
+
+function updateTiles() {
+    scrips.forEach(s => {
+        const buyEl = s.tile.querySelector(".buy");
+        const sellEl = s.tile.querySelector(".sell");
+        const buyDiffEl = s.tile.querySelector(".buyDiff");
+        const sellDiffEl = s.tile.querySelector(".sellDiff");
+
+        // Flash text if value changed
+        if(s.prevBuy != null && s.buy != null){
+            if(s.buy > s.prevBuy) flash(buyEl, "green-flash");
+            if(s.buy < s.prevBuy) flash(buyEl, "red-flash");
+        }
+        if(s.prevSell != null && s.sell != null){
+            if(s.sell > s.prevSell) flash(sellEl, "green-flash");
+            if(s.sell < s.prevSell) flash(sellEl, "red-flash");
+        }
+
+        buyEl.innerText = s.buy != null ? s.buy.toFixed(2) : "-";
+        sellEl.innerText = s.sell != null ? s.sell.toFixed(2) : "-";
+        buyDiffEl.innerText = s.buy != null ? (s.buy + difference).toFixed(2) : "-";
+        sellDiffEl.innerText = s.sell != null ? (s.sell + difference).toFixed(2) : "-";
+
+        s.prevBuy = s.buy;
+        s.prevSell = s.sell;
+    });
+}
+
+// Auto refresh every second
+fetchRates();
+setInterval(fetchRates, 1000);
+</script>
+
+</body>
+</html>
